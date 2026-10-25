@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeRakshak</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b1120;
+  color: white;
+  padding: 20px;
+}
+.card {
+  background: #172238;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 14px;
+}
+h1 { color: #48e0a4; }
+button {
+  background: #48e0a4;
+  color: #07111c;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  width: 100%;
+}
+input, select {
+  box-sizing: border-box;
+  padding: 12px;
+  margin: 8px 0 15px;
+  width: 100%;
+  border-radius: 8px;
+}
+.status { color: #ffc857; }
+</style>
+</head>
+<body>
+
+<h1>🛡️ TradeRakshak</h1>
+<p>Your Trading Risk Manager</p>
+
+<div class="card">
+<h3>Broker Connection</h3>
+<p class="status">● Broker Not Connected</p>
+<p>यह अभी एक शुरुआती डैशबोर्ड है। वास्तविक ट्रेडिंग चालू नहीं है।</p>
+</div>
+
+<div class="card">
+<h3>Profit Protection</h3>
+<label>Protection Activate at (₹)</label>
+<select id="profit">
+<option>500</option>
+<option>1000</option>
+<option>2000</option>
+<option>5000</option>
+</select>
+
+<label>Profit Giveback (%)</label>
+<select id="giveback">
+<option>25</option>
+<option>30</option>
+<option>40</option>
+<option>50</option>
+</select>
+</div>
+
+<div class="card">
+<h3>Daily Loss Limit</h3>
+<label>Maximum Daily Loss (₹)</label>
+<select id="loss">
+<option>300</option>
+<option>500</option>
+<option>1000</option>
+</select>
+<button onclick="saveSettings()">Save Settings</button>
+<p id="message"></p>
+</div>
+
+<div class="card">
+<h3>Safety Status</h3>
+<p>Automatic Exit: Not Connected</p>
+<p>Broker API: Not Connected</p>
+<p>Real orders: Disabled</p>
+</div>
+
+<script>
+function saveSettings() {
+  const settings = {
+    profit: document.getElementById('profit').value,
+    giveback: document.getElementById('giveback').value,
+    loss: document.getElementById('loss').value
+  };
+  localStorage.setItem('traderakshak_settings', JSON.stringify(settings));
+  document.getElementById('message').textContent = 'Settings saved on this device!';
+}
+const saved = JSON.parse(localStorage.getItem('traderakshak_settings') || 'null');
+if (saved) {
+  document.getElementById('profit').value = saved.profit;
+  document.getElementById('giveback').value = saved.giveback;
+  document.getElementById('loss').value = saved.loss;
+}
+</script>
+
+</body>
+</html>
