@@ -1,0 +1,134 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1120">
+<title>TradeRakshak | Risk Manager</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1120;color:#f1f5f9;font-family:Arial,sans-serif}
+header{padding:20px;background:#111b2e;border-bottom:1px solid #29364c}
+.logo{font-size:25px;font-weight:bold;color:#60a5fa}
+.subtitle{color:#94a3b8;font-size:12px;margin-top:5px}
+.badge{display:inline-block;background:#713f12;color:#fde68a;padding:7px 10px;border-radius:8px;font-size:12px;margin-top:12px}
+main{padding:16px;max-width:700px;margin:auto}
+h2{font-size:19px}
+.card{background:#131e30;border:1px solid #29364c;border-radius:14px;padding:16px;margin:14px 0}
+.label{font-size:13px;color:#94a3b8}
+.value{font-size:28px;font-weight:bold;margin:10px 0}
+.green{color:#4ade80}.red{color:#f87171}.blue{color:#60a5fa}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:13px;color:#cbd5e1;margin:14px 0 6px}
+input,select{width:100%;padding:12px;background:#0b1120;border:1px solid #394860;color:white;border-radius:8px;font-size:15px}
+button{width:100%;padding:13px;border:0;border-radius:9px;font-size:15px;font-weight:bold;margin-top:12px;cursor:pointer}
+.primary{background:#2563eb;color:white}.danger{background:#991b1b;color:white}.secondary{background:#26364e;color:white}
+.note{font-size:12px;line-height:1.6;color:#94a3b8}
+.status{padding:10px;border-radius:8px;background:#263449;color:#fbbf24;font-size:13px}
+footer{text-align:center;color:#64748b;font-size:12px;padding:20px}
+@media(max-width:380px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">🛡️ TradeRakshak</div>
+<div class="subtitle">PROTECT YOUR CAPITAL • CONTROL YOUR RISK</div>
+<div class="badge">DEMO UI • BROKERS NOT CONNECTED</div>
+</header>
+<main>
+<h2>Trading Dashboard</h2>
+<div class="grid">
+<div class="card"><div class="label">Account P&L</div><div class="value blue" id="pnl">—</div><div class="note">Real P&L unavailable</div></div>
+<div class="card"><div class="label">Open Positions</div><div class="value">Unknown</div><div class="note">Broker not connected</div></div>
+</div>
+<div class="card">
+<h2>⚙️ Profit Protection</h2>
+<label>Profit activation threshold (₹)</label>
+<select id="threshold">
+<option value="500">₹500</option><option value="1000" selected>₹1,000</option><option value="2000">₹2,000</option><option value="5000">₹5,000</option><option value="custom">Custom</option>
+</select>
+<input id="customThreshold" type="number" min="1" placeholder="Enter custom threshold" style="display:none">
+<label>Profit giveback (%)</label>
+<select id="giveback">
+<option value="25">25%</option><option value="30" selected>30%</option><option value="40">40%</option><option value="50">50%</option><option value="custom">Custom</option>
+</select>
+<input id="customGiveback" type="number" min="0.1" max="99.9" placeholder="Enter percentage" style="display:none">
+<div class="status" id="protectionStatus">Protection engine: Not connected to broker</div>
+</div>
+<div class="card">
+<h2>🛑 Daily Loss Limit</h2>
+<label>Maximum daily loss (₹)</label>
+<select id="lossLimit">
+<option value="300">₹300</option><option value="500" selected>₹500</option><option value="1000">₹1,000</option><option value="custom">Custom</option>
+</select>
+<input id="customLoss" type="number" min="1" placeholder="Enter custom loss limit" style="display:none">
+<label>Daily lock</label>
+<select id="dailyLock"><option value="on" selected>ON — lock after trigger</option><option value="off">OFF — settings preview only</option></select>
+<button class="primary" onclick="saveSettings()">Save Risk Settings</button>
+<div id="saveStatus" class="note">Settings have not been saved yet.</div>
+</div>
+<div class="card">
+<h2>🔌 Broker Connections</h2>
+<div class="status">Kotak Neo: NOT CONNECTED</div><br>
+<div class="status">Shoonya: NOT CONNECTED</div>
+<p class="note">No broker credentials are requested or stored. Live market data and order execution are unavailable until official API integration is completed.</p>
+</div>
+<div class="card">
+<h2>🚨 Emergency Exit</h2>
+<p class="note">Real exit is unavailable because no broker is connected. This button cannot close real positions.</p>
+<button class="danger" onclick="alert('Emergency Exit unavailable: no broker connection. No orders were sent.')">Emergency Exit — Unavailable</button>
+</div>
+<div class="card">
+<h2>🤖 Trading Assistant</h2>
+<p class="note">This initial version shows risk-management guidance only. It does not analyze live market data or make trades.</p>
+<button class="secondary" onclick="alert('Profit protection activates at your configured threshold, then tracks peak profit and calculates the configured giveback percentage. Real monitoring requires a verified broker connection and backend.')">Explain Profit Protection</button>
+</div>
+<div class="card">
+<h2>📒 Trading Journal</h2>
+<p class="note">No verified broker trades available. Journal integration is not configured.</p>
+</div>
+</main>
+<footer>TradeRakshak • Initial interface • Not connected to a trading account</footer>
+<script>
+const pairs=[['threshold','customThreshold'],['giveback','customGiveback'],['lossLimit','customLoss']];
+pairs.forEach(([s,i])=>{
+document.getElementById(s).addEventListener('change',()=>{
+document.getElementById(i).style.display=document.getElementById(s).value==='custom'?'block':'none';
+});
+});
+function validValue(selectId,inputId,min,max){
+const s=document.getElementById(selectId).value;
+const n=s==='custom'?Number(document.getElementById(inputId).value):Number(s);
+if(!Number.isFinite(n)||n<min||n>max)return null;
+return n;
+}
+function saveSettings(){
+const threshold=validValue('threshold','customThreshold',1,100000000);
+const giveback=validValue('giveback','customGiveback',0.1,99.9);
+const loss=validValue('lossLimit','customLoss',1,100000000);
+if(threshold===null||giveback===null||loss===null){
+document.getElementById('saveStatus').textContent='Please enter valid positive amounts and a giveback between 0.1% and 99.9%.';
+return;
+}
+const data={threshold,giveback,loss,dailyLock:document.getElementById('dailyLock').value};
+try{
+localStorage.setItem('traderakshak-settings',JSON.stringify(data));
+document.getElementById('saveStatus').textContent='Settings saved on this device. Broker monitoring is still unavailable.';
+}catch(e){
+document.getElementById('saveStatus').textContent='Could not save settings in this browser.';
+}
+}
+try{
+const d=JSON.parse(localStorage.getItem('traderakshak-settings')||'null');
+if(d){
+document.getElementById('threshold').value=[500,1000,2000,5000].includes(d.threshold)?String(d.threshold):'custom';
+if(document.getElementById('threshold').value==='custom'){document.getElementById('customThreshold').style.display='block';document.getElementById('customThreshold').value=d.threshold;}
+document.getElementById('giveback').value=[25,30,40,50].includes(d.giveback)?String(d.giveback):'custom';
+if(document.getElementById('giveback').value==='custom'){document.getElementById('customGiveback').style.display='block';document.getElementById('customGiveback').value=d.giveback;}
+document.getElementById('lossLimit').value=[300,500,1000].includes(d.loss)?String(d.loss):'custom';
+if(document.getElementById('lossLimit').value==='custom'){document.getElementById('customLoss').style.display='block';document.getElementById('customLoss').value=d.loss;}
+document.getElementById('dailyLock').value=d.dailyLock;
+}
+}catch(e){}
+</script>
+</body>
+</html>
