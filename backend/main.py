@@ -1,5 +1,38 @@
 import os
-import uuid
+import uuid@app.get("/paper/dashboard")
+def paper_dashboard():
+    with trade_lock:
+        all_trades = list(trades.values())
+
+        open_trades = [
+            trade for trade in all_trades
+            if trade["status"] == "OPEN"
+        ]
+
+        closed_trades = [
+            trade for trade in all_trades
+            if trade["status"] == "CLOSED"
+        ]
+
+        open_pnl = round(
+            sum(trade["pnl"] for trade in open_trades), 2
+        )
+
+        closed_pnl = round(
+            sum(trade["pnl"] for trade in closed_trades), 2
+        )
+
+        return {
+            "mode": "PAPER_ONLY",
+            "live_trading": False,
+            "total_trades": len(all_trades),
+            "open_positions": len(open_trades),
+            "closed_positions": len(closed_trades),
+            "open_pnl": open_pnl,
+            "closed_pnl": closed_pnl,
+            "total_pnl": round(open_pnl + closed_pnl, 2),
+            "trades": all_trades
+        }
 from datetime import datetime, timezone
 from threading import Lock
 from typing import Literal
