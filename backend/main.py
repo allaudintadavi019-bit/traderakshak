@@ -1,7 +1,8 @@
-import os
+import os from kotak_auth import router as kotak_router
 from fastapi import FastAPI
 
 app = FastAPI(
+    app.include_router(kotak_router)
     title="TradeRakshak API",
     version="1.2.1"
 )
