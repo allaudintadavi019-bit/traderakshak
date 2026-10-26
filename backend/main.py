@@ -1,88 +1,4 @@
 import os
-import uuid@app.get("/paper/dashboard")
-def paper_dashboard():
-    with trade_lock:
-        all_trades = list(trades.values())
-
-        open_trades = [
-            trade for trade in all_trades
-            if trade["status"] == "OPEN"
-        ]
-
-        closed_trades = [
-            trade for trade in all_trades
-            if trade["status"] == "CLOSED"
-        ]
-
-        open_pnl = round(
-            sum(trade["pnl"] for trade in open_trades), 2
-        )
-
-        closed_pnl = round(
-            sum(trade["pnl"] for trade in closed_trades), 2
-        )
-
-        return {
-            "mode": "PAPER_ONLY",
-            "live_trading": False,
-            "total_trades": len(all_trades),
-            "open_positions": len(open_trades),
-            "closed_positions": len(closed_trades),
-            "open_pnl": open_pnl,
-            "closed_pnl": closed_pnl,
-            "total_pnl": round(open_pnl + closed_pnl, 2),
-            "trades": all_trades
-        }
-from datetime import datetime, timezone
-from threading import Lock
-from typing import Literal
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-
-from kotak_auth import router as kotak_router
-
-
-app = FastAPI(
-    title="TradeRakshak API",
-    version="1.3.0"
-)
-
-app.include_router(kotak_router)
-
-trades = {}
-trade_lock = Lock()
-
-
-class PaperTradeRequest(BaseModel):
-    symbol: str = Field(min_length=1, max_length=50)
-    side: Literal["BUY", "SELL"]
-    entry_price: float = Field(gt=0)
-    quantity: int = Field(gt=0, le=100000)
-    stop_loss: float = Field(gt=0)
-    target: float = Field(gt=0)
-
-
-class PriceUpdate(BaseModel):
-    price: float = Field(gt=0)
-
-
-def calculate_pnl(trade, price):
-    if trade["side"] == "BUY":
-        return round(
-            (price - trade["entry_price"]) * trade["quantity"], 2
-        )
-
-    return round(
-        (trade["entry_price"] - price) * trade["quantity"], 2
-    )
-
-
-def check_exit(trade, price):
-    if trade["side"] == "BUY":
-        if price <= trade["stop_loss"]:
-            return "STOP_LOSS"
-import os
 import uuid
 from datetime import datetime, timezone
 from threading import Lock
@@ -105,10 +21,6 @@ trades = {}
 trade_lock = Lock()
 
 
-# =========================
-# REQUEST MODELS
-# =========================
-
 class PaperTradeRequest(BaseModel):
     symbol: str = Field(min_length=1, max_length=50)
     side: Literal["BUY", "SELL"]
@@ -121,10 +33,6 @@ class PaperTradeRequest(BaseModel):
 class PriceUpdate(BaseModel):
     price: float = Field(gt=0)
 
-
-# =========================
-# P&L CALCULATION
-# =========================
 
 def calculate_pnl(trade, price):
     if trade["side"] == "BUY":
@@ -139,31 +47,20 @@ def calculate_pnl(trade, price):
     return round(pnl, 2)
 
 
-# =========================
-# STOP-LOSS / TARGET CHECK
-# =========================
-
 def check_exit(trade, price):
     if trade["side"] == "BUY":
         if price <= trade["stop_loss"]:
             return "STOP_LOSS"
-
         if price >= trade["target"]:
             return "TARGET"
-
     else:
         if price >= trade["stop_loss"]:
             return "STOP_LOSS"
-
         if price <= trade["target"]:
             return "TARGET"
 
     return None
 
-
-# =========================
-# HOME
-# =========================
 
 @app.get("/")
 def home():
@@ -175,20 +72,10 @@ def home():
     }
 
 
-# =========================
-# HEALTH CHECK
-# =========================
-
 @app.get("/health")
 def health():
-    return {
-        "status": "ok"
-    }
+    return {"status": "ok"}
 
-
-# =========================
-# BROKER STATUS
-# =========================
 
 @app.get("/broker/status")
 def broker_status():
@@ -204,40 +91,26 @@ def broker_status():
     }
 
 
-# =========================
-# CREATE PAPER TRADE
-# =========================
-
 @app.post("/paper/trades")
 def create_paper_trade(data: PaperTradeRequest):
-
     if data.side == "BUY":
-        if not (
+        valid_prices = (
             data.stop_loss
             < data.entry_price
             < data.target
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "BUY ke liye Stop-loss < Entry < Target "
-                    "hona chahiye"
-                )
-            )
-
+        )
     else:
-        if not (
+        valid_prices = (
             data.target
             < data.entry_price
             < data.stop_loss
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "SELL ke liye Target < Entry < Stop-loss "
-                    "hona chahiye"
-                )
-            )
+        )
+
+    if not valid_prices:
+        raise HTTPException(
+            status_code=400,
+            detail="Entry, Stop-loss aur Target ki prices galat hain"
+        )
 
     trade_id = str(uuid.uuid4())[:8]
 
@@ -268,10 +141,6 @@ def create_paper_trade(data: PaperTradeRequest):
     }
 
 
-# =========================
-# LIST ALL PAPER TRADES
-# =========================
-
 @app.get("/paper/trades")
 def list_paper_trades():
     with trade_lock:
@@ -281,13 +150,8 @@ def list_paper_trades():
         }
 
 
-# =========================
-# GET ONE PAPER TRADE
-# =========================
-
 @app.get("/paper/trades/{trade_id}")
 def get_paper_trade(trade_id: str):
-
     with trade_lock:
         trade = trades.get(trade_id)
 
@@ -300,16 +164,11 @@ def get_paper_trade(trade_id: str):
         return trade
 
 
-# =========================
-# UPDATE PRICE AND CHECK EXIT
-# =========================
-
 @app.post("/paper/trades/{trade_id}/price")
 def update_paper_price(
     trade_id: str,
     data: PriceUpdate
 ):
-
     with trade_lock:
         trade = trades.get(trade_id)
 
@@ -326,7 +185,6 @@ def update_paper_price(
             )
 
         trade["current_price"] = data.price
-
         trade["pnl"] = calculate_pnl(
             trade,
             data.price
@@ -352,41 +210,28 @@ def update_paper_price(
         }
 
 
-# =========================
-# PAPER MONITORING DASHBOARD
-# =========================
-
 @app.get("/paper/dashboard")
 def paper_dashboard():
-
     with trade_lock:
         all_trades = list(trades.values())
 
         open_trades = [
-            trade
-            for trade in all_trades
+            trade for trade in all_trades
             if trade["status"] == "OPEN"
         ]
 
         closed_trades = [
-            trade
-            for trade in all_trades
+            trade for trade in all_trades
             if trade["status"] == "CLOSED"
         ]
 
         open_pnl = round(
-            sum(
-                trade["pnl"]
-                for trade in open_trades
-            ),
+            sum(trade["pnl"] for trade in open_trades),
             2
         )
 
         closed_pnl = round(
-            sum(
-                trade["pnl"]
-                for trade in closed_trades
-            ),
+            sum(trade["pnl"] for trade in closed_trades),
             2
         )
 
