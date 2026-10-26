@@ -8,12 +8,12 @@ version="1.2.0"
 
 @app.get("/")
 def home():
-return {
-"app": "TradeRakshak",
-"message": "Backend is running",
-"mode": "test",
-"live_trading": False
-}
+    return {
+        "app": "TradeRakshak",
+        "message": "Backend is running",
+        "mode": "test",
+        "live_trading": False
+    }
 
 @app.get("/health")
 def health():
