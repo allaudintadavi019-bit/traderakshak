@@ -1,109 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TradeRakshak</title>
 <style>
+* { box-sizing: border-box; }
 body {
   margin: 0;
+  padding: 18px;
   font-family: Arial, sans-serif;
   background: #0b1120;
-  color: white;
-  padding: 20px;
+  color: #fff;
 }
+.container { max-width: 650px; margin: auto; }
+h1 { color: #48e0a4; margin-bottom: 5px; }
+.subtitle { color: #a8b6cc; margin-top: 0; }
 .card {
   background: #172238;
   padding: 20px;
-  margin: 15px 0;
+  margin: 16px 0;
+  border: 1px solid #283852;
   border-radius: 14px;
 }
-h1 { color: #48e0a4; }
+h2 { font-size: 19px; margin-top: 0; }
+label { display: block; margin-top: 14px; color: #dce6f5; }
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 7px;
+  border-radius: 8px;
+  border: 1px solid #3a4b65;
+  background: #0b1120;
+  color: white;
+  font-size: 16px;
+}
 button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 18px;
   background: #48e0a4;
   color: #07111c;
-  padding: 13px;
-  border: none;
+  border: 0;
   border-radius: 8px;
   font-weight: bold;
-  width: 100%;
-}
-input, select {
-  box-sizing: border-box;
-  padding: 12px;
-  margin: 8px 0 15px;
-  width: 100%;
-  border-radius: 8px;
+  font-size: 16px;
 }
 .status { color: #ffc857; }
+.note { color: #a8b6cc; font-size: 13px; line-height: 1.5; }
+.success { color: #48e0a4; }
+.warning {
+  padding: 12px;
+  border-radius: 8px;
+  background: #352b18;
+  color: #ffd477;
+  line-height: 1.5;
+}
+footer { color: #8291a8; font-size: 12px; text-align: center; padding: 15px; }
 </style>
 </head>
 <body>
-
-<h1>🛡️ TradeRakshak</h1>
-<p>Your Trading Risk Manager</p>
-
-<div class="card">
-<h3>Broker Connection</h3>
-<p class="status">● Broker Not Connected</p>
-<p>यह अभी एक शुरुआती डैशबोर्ड है। वास्तविक ट्रेडिंग चालू नहीं है।</p>
-</div>
-
-<div class="card">
-<h3>Profit Protection</h3>
-<label>Protection Activate at (₹)</label>
-<select id="profit">
-<option>500</option>
-<option>1000</option>
-<option>2000</option>
-<option>5000</option>
-</select>
-
-<label>Profit Giveback (%)</label>
+<div class="container">
+  <h1>🛡️ TradeRakshak</h1>
+  <p class="subtitle">Intraday Options Risk Manager</p>  <div class="card">
+    <h2>Broker Connection</h2>
+    <p class="status">● Kotak Neo: Not Connected</p>
+    <p class="note">यह डैशबोर्ड अभी Kotak Neo से जुड़ा नहीं है। कोई वास्तविक ऑर्डर नहीं लगाया जाएगा।</p>
+  </div>  <div class="card">
+    <h2>🎯 Profit Protection</h2>
+    <label for="profit">Protection Activate at (₹)</label>
+    <input id="profit" type="number" min="1" step="1" value="1000"><label for="giveback">Profit Giveback (%)</label>
 <select id="giveback">
-<option>25</option>
-<option>30</option>
-<option>40</option>
-<option>50</option>
+  <option value="10">10%</option>
+  <option value="20">20%</option>
+  <option value="25" selected>25%</option>
+  <option value="30">30%</option>
+  <option value="40">40%</option>
+  <option value="50">50%</option>
 </select>
-</div>
 
-<div class="card">
-<h3>Daily Loss Limit</h3>
-<label>Maximum Daily Loss (₹)</label>
-<select id="loss">
-<option>300</option>
-<option>500</option>
-<option>1000</option>
-</select>
-<button onclick="saveSettings()">Save Settings</button>
-<p id="message"></p>
-</div>
+<p class="note">उदाहरण: ₹1,000 का अधिकतम मुनाफ़ा और 25% Giveback होने पर, यदि सिस्टम लाइव डेटा से जुड़ा हो तो ₹250 की गिरावट का नियम इस्तेमाल किया जा सकता है। यह पेज अभी लाइव P&amp;L नहीं पढ़ता और ऑटो-एग्जिट नहीं करता।</p>
 
-<div class="card">
-<h3>Safety Status</h3>
-<p>Automatic Exit: Not Connected</p>
-<p>Broker API: Not Connected</p>
-<p>Real orders: Disabled</p>
-</div>
+  </div>  <div class="card">
+    <h2>📉 Daily Loss Limit</h2>
+    <label for="loss">Maximum Daily Loss (₹)</label>
+    <input id="loss" type="number" min="1" step="1" value="500">
+    <p class="note">यह अभी केवल आपकी सेटिंग सेव करता है। वास्तविक नुकसान को रोकने के लिए बैकएंड और ब्रोकर कनेक्शन आवश्यक है।</p>
+  </div>  <div class="card">
+    <h2>⚙️ Settings</h2>
+    <button onclick="saveSettings()">Save Settings</button>
+    <p id="message" aria-live="polite"></p>
+    <button onclick="resetSettings()" style="background:#34445d;color:white;">Reset Settings</button>
+  </div>  <div class="card">
+    <h2>🔒 Safety Status</h2>
+    <p>Broker API: <span class="status">Not Connected</span></p>
+    <p>Live P&amp;L: <span class="status">Unavailable</span></p>
+    <p>Automatic Exit: <span class="status">Disabled</span></p>
+    <p>Real Orders: <span class="status">Disabled</span></p>
+    <div class="warning">⚠️ यह अभी सेटिंग्स वाला डैशबोर्ड है, वास्तविक ट्रेडिंग सिस्टम नहीं। ट्रेडिंग के लिए इस पेज पर अकेले भरोसा न करें।</div>
+  </div>
+  <footer>TradeRakshak • Risk settings are stored locally on this device.</footer>
+</div><script>
+const defaults = { profit: 1000, giveback: 25, loss: 500 };
 
-<script>
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("traderakshak_settings") || "null");
+    const s = saved || defaults;
+    document.getElementById("profit").value = s.profit ?? defaults.profit;
+    document.getElementById("giveback").value = String(s.giveback ?? defaults.giveback);
+    document.getElementById("loss").value = s.loss ?? defaults.loss;
+  } catch (e) {
+    document.getElementById("profit").value = defaults.profit;
+    document.getElementById("giveback").value = defaults.giveback;
+    document.getElementById("loss").value = defaults.loss;
+  }
+}
+
 function saveSettings() {
-  const settings = {
-    profit: document.getElementById('profit').value,
-    giveback: document.getElementById('giveback').value,
-    loss: document.getElementById('loss').value
-  };
-  localStorage.setItem('traderakshak_settings', JSON.stringify(settings));
-  document.getElementById('message').textContent = 'Settings saved on this device!';
-}
-const saved = JSON.parse(localStorage.getItem('traderakshak_settings') || 'null');
-if (saved) {
-  document.getElementById('profit').value = saved.profit;
-  document.getElementById('giveback').value = saved.giveback;
-  document.getElementById('loss').value = saved.loss;
-}
-</script>
+  const profit = Number(document.getElementById("profit").value);
+  const giveback = Number(document.getElementById("giveback").value);
+  const loss = Number(document.getElementById("loss").value);
+  const message = document.getElementById("message");
 
-</body>
+  if (!Number.isFinite(profit) || profit <= 0 ||
+      !Number.isFinite(loss) || loss <= 0) {
+    message.className = "status";
+    message.textContent = "कृपया Profit और Loss की रकम 0 से अधिक दर्ज करें।";
+    return;
+  }
+
+  const settings = { profit, giveback, loss };
+  localStorage.setItem("traderakshak_settings", JSON.stringify(settings));
+  message.className = "success";
+  message.textContent = "Settings इस डिवाइस पर सेव हो गईं। लाइव ट्रेडिंग चालू नहीं है।";
+}
+
+function resetSettings() {
+  localStorage.removeItem("traderakshak_settings");
+  loadSettings();
+  const message = document.getElementById("message");
+  message.className = "success";
+  message.textContent = "Default settings वापस आ गईं।";
+}
+
+loadSettings();
+</script></body>
 </html>
