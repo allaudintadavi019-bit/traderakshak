@@ -1,7 +1,10 @@
 import os
 from fastapi import FastAPI
 
-app = FastAPI(title="TradeRakshak API", version="1.2.1")
+app = FastAPI(
+title="TradeRakshak API",
+version="1.2.1"
+)
 
 @app.get("/")
 def home():
