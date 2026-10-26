@@ -1,11 +1,13 @@
-import os from kotak_auth import router as kotak_router
+import os
 from fastapi import FastAPI
+from kotak_auth import router as kotak_router
 
 app = FastAPI(
-    app.include_router(kotak_router)
     title="TradeRakshak API",
-    version="1.2.1"
+    version="1.2.2"
 )
+
+app.include_router(kotak_router)
 
 
 @app.get("/")
@@ -20,12 +22,15 @@ def home():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok"
+    }
 
 
 @app.get("/broker/status")
 def broker_status():
     token = os.getenv("KOTAK_API_TOKEN")
+
     return {
         "broker": "Kotak Neo",
         "token_configured": bool(token),
