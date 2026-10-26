@@ -1,19 +1,16 @@
 import os
 from fastapi import FastAPI
 
-app = FastAPI(
-title="TradeRakshak API",
-version="1.2.0"
-)
+app = FastAPI(title="TradeRakshak API", version="1.2.1")
 
 @app.get("/")
 def home():
-    return {
-        "app": "TradeRakshak",
-        "message": "Backend is running",
-        "mode": "test",
-        "live_trading": False
-    }
+return {
+"app": "TradeRakshak",
+"message": "Backend is running",
+"mode": "test",
+"live_trading": False
+}
 
 @app.get("/health")
 def health():
