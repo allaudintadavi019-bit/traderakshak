@@ -6,7 +6,7 @@ title="TradeRakshak API",
 version="1.1.0"
 )
 
-Test-mode settings
+#Test-mode settings
 
 PROFIT_TARGET = 1000
 PROFIT_GIVEBACK_PERCENT = 30
