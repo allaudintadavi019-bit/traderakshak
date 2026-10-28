@@ -1,18 +1,43 @@
+
 import os
+import secrets
 import requests
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
+from fastapi import APIRouter, HTTPException, Header
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 
+
 class KotakLoginRequest(BaseModel):
-    mobile_number: str
-    ucc: str
-    totp: str
-    mpin: str
+    mobile_number: str = Field(min_length=1)
+    ucc: str = Field(min_length=1)
+    totp: str = Field(min_length=1)
+    mpin: str = Field(min_length=1)
+
 
 @router.post("/broker/login")
-def kotak_login(data: KotakLoginRequest):
+def kotak_login(
+    data: KotakLoginRequest,
+    access_key: str = Header(
+        default="",
+        alias="X-Access-Key"
+    )
+):
+    # Check TradeRakshak access key
+    expected_key = os.getenv(
+        "TRADERAKSHAK_ACCESS_KEY", ""
+    )
+
+    if not expected_key or not secrets.compare_digest(
+        access_key, expected_key
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized"
+        )
+
+    # Check Kotak API token configuration
     api_token = os.getenv("KOTAK_API_TOKEN")
 
     if not api_token:
@@ -39,12 +64,18 @@ def kotak_login(data: KotakLoginRequest):
             timeout=15
         )
 
-        result = response.json()
+        try:
+            result = response.json()
+        except ValueError:
+            raise HTTPException(
+                status_code=502,
+                detail="Invalid response from Kotak Neo"
+            )
 
         if response.status_code != 200:
             raise HTTPException(
                 status_code=502,
-                detail="Kotak login failed; check credentials and API response"
+                detail="Kotak login failed"
             )
 
         login_data = result.get("data", {})
@@ -54,7 +85,7 @@ def kotak_login(data: KotakLoginRequest):
         if not view_token or not view_sid:
             raise HTTPException(
                 status_code=502,
-                detail="Kotak did not return a valid login session"
+                detail="Kotak login session was not returned"
             )
 
         validate_headers = {
@@ -70,7 +101,13 @@ def kotak_login(data: KotakLoginRequest):
             timeout=15
         )
 
-        validate_result = validate_response.json()
+        try:
+            validate_result = validate_response.json()
+        except ValueError:
+            raise HTTPException(
+                status_code=502,
+                detail="Invalid Kotak validation response"
+            )
 
         if validate_response.status_code != 200:
             raise HTTPException(
@@ -86,12 +123,24 @@ def kotak_login(data: KotakLoginRequest):
                 detail="Kotak authentication was not successful"
             )
 
+        # Do not enable live orders here.
+        # This endpoint does not place any orders.
         return {
             "authenticated": True,
             "broker": "Kotak Neo",
             "mode": "test",
-            "message": "Login successful; no orders were placed"
+            "message": (
+                "Authentication response accepted; "
+                "live orders remain disabled"
+            ),
+            "live_orders_enabled": False
         }
+
+    except requests.Timeout:
+        raise HTTPException(
+            status_code=504,
+            detail="Kotak Neo request timed out"
+        )
 
     except requests.RequestException:
         raise HTTPException(
